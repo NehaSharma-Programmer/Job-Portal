@@ -527,6 +527,21 @@ function RecruiterApplicants() {
                             )}
 
                           </div>
+
+                      {application.coverLetter && (
+  <div className="cover-letter-box">
+    <div className="cover-letter-title">
+      Cover Letter
+    </div>
+
+    <p>{application.coverLetter}</p>
+  </div>
+)}
+
+
+
+
+
                      <div className="application-footer">
 
   <span
