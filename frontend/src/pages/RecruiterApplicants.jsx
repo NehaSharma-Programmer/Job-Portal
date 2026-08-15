@@ -7,10 +7,14 @@ function RecruiterApplicants() {
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [applicants, setApplicants] = useState([]);
+  const [allApplicants, setAllApplicants] = useState([]);
   const [loading, setLoading] = useState(false);
   const [applicantsLoading, setApplicantsLoading] = useState(false);
   const [message, setMessage] = useState("");
-
+  const [totalJobs, setTotalJobs] = useState(0);
+const [totalApplicants, setTotalApplicants] = useState(0);
+const [selectedCount, setSelectedCount] = useState(0);
+const [shortlistedCount, setShortlistedCount] = useState(0);
   // Fetch recruiter's jobs
   const fetchMyJobs = async () => {
     try {
@@ -35,6 +39,35 @@ function RecruiterApplicants() {
 
       // Show only jobs posted by logged-in recruiter
      setJobs(response.data.jobs);
+     const recruiterJobs = response.data.jobs || [];
+
+const allApplications = [];
+
+for (const job of recruiterJobs) {
+  try {
+    const applicantsResponse = await axios.get(
+      `http://localhost:5000/api/applications/job/${job._id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const jobApplications =
+      applicantsResponse.data.applications || [];
+
+    allApplications.push(...jobApplications);
+  } catch (error) {
+    console.error(
+      `Applicants fetch error for job ${job._id}:`,
+      error
+    );
+  }
+}
+
+setAllApplicants(allApplications);
+     setTotalJobs(response.data.jobs.length);
     } catch (error) {
       console.error("Fetch Jobs Error:", error);
 
@@ -65,6 +98,21 @@ function RecruiterApplicants() {
       );
 
       setApplicants(response.data.applications);
+      const applications = response.data.applications || [];
+
+setTotalApplicants(applications.length);
+
+setSelectedCount(
+  applications.filter(
+    (application) => application.status === "Selected"
+  ).length
+);
+
+setShortlistedCount(
+  applications.filter(
+    (application) => application.status === "Shortlisted"
+  ).length
+);
     } catch (error) {
       console.error("Fetch Applicants Error:", error);
 
@@ -99,6 +147,13 @@ function RecruiterApplicants() {
     setMessage(
       `Application ${status.toLowerCase()} successfully`
     );
+    setApplicants((prevApplicants) =>
+  prevApplicants.map((application) =>
+    application._id === applicationId
+      ? { ...application, status }
+      : application
+  )
+);
 
     if (selectedJob) {
       fetchApplicants(selectedJob._id);
