@@ -1,6 +1,8 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import RecruiterApplicants from "./pages/RecruiterApplicants";
 
 function App() {
   const [recommendations, setRecommendations] = useState([]);
@@ -10,7 +12,8 @@ function App() {
   const [selectedJob, setSelectedJob] = useState(null);
   const [coverLetter, setCoverLetter] = useState("");
   const [applying, setApplying] = useState(false);
-
+  const [applications, setApplications] = useState([]);
+  const [applicationsLoading, setApplicationsLoading] = useState(false);
   // Fetch AI recommended jobs
   const fetchRecommendations = async () => {
     try {
@@ -45,6 +48,40 @@ function App() {
       setLoading(false);
     }
   };
+   const fetchMyApplications = async () => {
+  try {
+    setApplicationsLoading(true);
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setMessage("Please login first");
+      return;
+    }
+
+    const response = await axios.get(
+      "http://localhost:5000/api/applications/my",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    setApplications(response.data.applications);
+  } catch (error) {
+    console.error("My Applications Error:", error);
+
+    setMessage(
+      error.response?.data?.message ||
+        "Unable to fetch applications"
+    );
+  } finally {
+    setApplicationsLoading(false);
+  }
+};
+
+
 
   // Apply for selected job
   const applyForJob = async () => {
@@ -99,9 +136,24 @@ console.log("Token:", token);
   // Fetch recommendations when page loads
   useEffect(() => {
     fetchRecommendations();
+    fetchMyApplications();
   }, []);
 
   return (
+         <BrowserRouter>
+    <Routes>
+
+      <Route
+        path="/recruiter"
+        element={<RecruiterApplicants />}
+      />
+
+      <Route
+        path="*"
+        element={
+
+
+
     <div style={{ padding: "40px" }}>
       <h1>🤖 AI Recommended Jobs</h1>
 
@@ -215,7 +267,66 @@ console.log("Token:", token);
           </button>
         </div>
       )}
+       <hr style={{ margin: "40px 0" }} />
+
+<h1>📋 My Applications</h1>
+
+{applicationsLoading && (
+  <p>Loading applications...</p>
+)}
+
+{!applicationsLoading && applications.length === 0 && (
+  <p>You have not applied for any jobs yet.</p>
+)}
+
+{!applicationsLoading &&
+  applications.map((application) => (
+    <div
+      key={application._id}
+      style={{
+        border: "1px solid #ddd",
+        padding: "20px",
+        margin: "20px 0",
+        borderRadius: "10px",
+      }}
+    >
+      <h2>
+        {application.job?.title}
+      </h2>
+
+      <p>
+        <strong>Company:</strong>{" "}
+        {application.job?.company}
+      </p>
+
+      <p>
+        <strong>Location:</strong>{" "}
+        {application.job?.location}
+      </p>
+
+      <p>
+        <strong>Status:</strong>{" "}
+        {application.status}
+      </p>
+
+      <p>
+        <strong>Cover Letter:</strong>{" "}
+        {application.coverLetter}
+      </p>
     </div>
+  ))}
+
+
+
+    </div>
+            }
+      />
+
+    </Routes>
+  </BrowserRouter>
+
+
+
   );
 }
 
