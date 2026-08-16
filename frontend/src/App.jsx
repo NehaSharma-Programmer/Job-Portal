@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import RecruiterApplicants from "./pages/RecruiterApplicants";
-
+import CreateJob from "./pages/CreateJob";
 function App() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -135,8 +135,13 @@ console.log("Token:", token);
 
   // Fetch recommendations when page loads
   useEffect(() => {
+      const path = window.location.pathname;
+
+  if (path === "/") {
+
     fetchRecommendations();
     fetchMyApplications();
+  }
   }, []);
 
   return (
@@ -147,6 +152,11 @@ console.log("Token:", token);
         path="/recruiter"
         element={<RecruiterApplicants />}
       />
+      <Route
+  path="/recruiter/create-job"
+  element={<CreateJob />}
+/>
+
 
       <Route
         path="*"

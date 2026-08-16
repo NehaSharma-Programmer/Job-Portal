@@ -285,7 +285,7 @@ setShortlistedCount(
             <div>
               <span>Applicants</span>
               <strong>
-                {applicants.length}
+                {allApplicants.length}
               </strong>
             </div>
           </div>
@@ -299,7 +299,7 @@ setShortlistedCount(
               <span>Selected</span>
               <strong>
                 {
-                  applicants.filter(
+                  allApplicants.filter(
                     (app) =>
                       app.status === "Selected"
                   ).length
@@ -317,7 +317,7 @@ setShortlistedCount(
               <span>Shortlisted</span>
               <strong>
                 {
-                  applicants.filter(
+                  allApplicants.filter(
                     (app) =>
                       app.status === "Shortlisted"
                   ).length
@@ -477,7 +477,7 @@ setShortlistedCount(
                   </div>
 
                   <span className="applicant-count">
-                    {applicants.length}
+                    {allApplicants.length}
                   </span>
 
                 </div>
@@ -492,7 +492,8 @@ setShortlistedCount(
                 )}
 
                 {!applicantsLoading &&
-                  applicants.length === 0 && (
+                  
+                  allApplicants.length === 0 && (
                     <div className="empty-state">
                       <div className="empty-icon">
                         👤
@@ -512,7 +513,7 @@ setShortlistedCount(
                 <div className="applicant-list">
 
                   {!applicantsLoading &&
-                    applicants.map(
+                    allApplicants.map(
                       (application) => (
                         <div
                           className="applicant-card"
