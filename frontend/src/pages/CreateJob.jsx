@@ -1,8 +1,10 @@
 
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function CreateJob() {
+    const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
     company: "",
@@ -244,6 +246,16 @@ function CreateJob() {
             ? "Posting Job..."
             : "Post Job"}
         </button>
+        <button
+  type="button"
+  onClick={() => navigate("/recruiter")}
+  style={{
+    marginTop: "10px",
+    marginLeft: "10px",
+  }}
+>
+  ← Back to Dashboard
+</button>
 
       </form>
     </div>

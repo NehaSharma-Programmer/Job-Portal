@@ -173,6 +173,39 @@ setShortlistedCount(
   }
 };
 
+// Delete job
+const deleteJob = async (jobId) => {
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this job?"
+  );
+
+  if (!confirmed) return;
+
+  try {
+    const token = localStorage.getItem("token");
+
+    await axios.delete(
+      `http://localhost:5000/api/jobs/${jobId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    setMessage("Job deleted successfully!");
+    setSelectedJob(null);
+
+    fetchMyJobs();
+  } catch (error) {
+    console.error("Delete Job Error:", error);
+
+    setMessage(
+      error.response?.data?.message ||
+        "Unable to delete job"
+    );
+  }
+};
 
 
 
@@ -224,9 +257,16 @@ setShortlistedCount(
         </nav>
 
         <div className="sidebar-bottom">
-          <button className="logout-btn">
-            🚪 Logout
-          </button>
+         <button
+  className="logout-btn"
+  onClick={() => {
+    localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    window.location.href = "/login";
+  }}
+>
+  🚪 Logout
+</button>
         </div>
 
       </aside>
@@ -410,6 +450,15 @@ setShortlistedCount(
                     <span className="arrow">
                       →
                     </span>
+                    <span
+  className="delete-job-btn"
+  onClick={(e) => {
+    e.stopPropagation();
+    deleteJob(job._id);
+  }}
+>
+  🗑️ Delete
+</span>
 
                   </div>
 

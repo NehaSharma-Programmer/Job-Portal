@@ -177,10 +177,41 @@ const getAIRecommendedJobs = async (req, res) => {
     });
   }
 };
+const deleteJob = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+
+    if (!job) {
+      return res.status(404).json({
+        message: "Job not found",
+      });
+    }
+
+    // Only the recruiter who posted the job can delete it
+    if (job.postedBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "You can only delete your own jobs",
+      });
+    }
+
+    await Job.findByIdAndDelete(req.params.id);
+
+    res.json({
+      message: "Job deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Job Error:", error);
+
+    res.status(500).json({
+      message: "Unable to delete job",
+    });
+  }
+};
 
 module.exports = {
   createJob,
   getAllJobs,
   getRecommendedJobs,
   getAIRecommendedJobs,
+  deleteJob,
 };

@@ -4,6 +4,9 @@ import axios from "axios";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import RecruiterApplicants from "./pages/RecruiterApplicants";
 import CreateJob from "./pages/CreateJob";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ProtectedRoute from "./ProtectedRoute";
 function App() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -147,11 +150,23 @@ console.log("Token:", token);
   return (
          <BrowserRouter>
     <Routes>
+      <Route
+  path="/login"
+  element={<Login />}
+/>
+<Route
+  path="/register"
+  element={<Register />}
+/>
 
       <Route
-        path="/recruiter"
-        element={<RecruiterApplicants />}
-      />
+  path="/recruiter"
+  element={
+    <ProtectedRoute>
+      <RecruiterApplicants />
+    </ProtectedRoute>
+  }
+/>
       <Route
   path="/recruiter/create-job"
   element={<CreateJob />}
