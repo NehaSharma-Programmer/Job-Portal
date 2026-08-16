@@ -159,7 +159,7 @@ console.log("Token:", token);
 
 
       <Route
-        path="*"
+        path="/"
         element={
 
 

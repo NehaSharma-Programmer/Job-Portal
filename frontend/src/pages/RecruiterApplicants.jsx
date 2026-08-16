@@ -2,8 +2,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import "./RecruiterApplicants.css";
+import { useNavigate } from "react-router-dom";
 
 function RecruiterApplicants() {
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [applicants, setApplicants] = useState([]);
@@ -249,6 +251,12 @@ setShortlistedCount(
               talented candidates.
             </p>
           </div>
+          <button
+  className="post-job-btn"
+  onClick={() => navigate("/recruiter/create-job")}
+>
+  + Post New Job
+</button>
 
           <div className="profile-circle">
             R
