@@ -46,6 +46,62 @@ const createJob = async (req, res) => {
     });
   }
 };
+const updateJob = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const {
+      title,
+      company,
+      description,
+      location,
+      skills,
+      experience,
+      salary,
+      jobType,
+    } = req.body;
+
+    const job = await Job.findById(id);
+   
+    if (!job) {
+      return res.status(404).json({
+        message: "Job not found",
+      });
+    }
+    console.log("JOB POSTED BY:", job.postedBy);
+console.log("LOGGED IN USER:", req.user);
+
+    // Only the recruiter who created the job can edit it
+    if (job.postedBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "You can only edit your own jobs",
+      });
+    }
+
+    job.title = title;
+    job.company = company;
+    job.description = description;
+    job.location = location;
+    job.skills = skills;
+    job.experience = experience;
+    job.salary = salary;
+    job.jobType = jobType;
+
+    await job.save();
+
+    res.status(200).json({
+      message: "Job updated successfully",
+      job,
+    });
+  } catch (error) {
+    console.error("Update Job Error:", error);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
 
 const getAllJobs = async (req, res) => {
   try {
@@ -60,6 +116,27 @@ const getAllJobs = async (req, res) => {
     });
   } catch (error) {
     console.error("Get Jobs Error:", error);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+const getMyJobs = async (req, res) => {
+  try {
+    const jobs = await Job.find({
+      postedBy: req.user.userId,
+    })
+      .populate("postedBy", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      message: "Recruiter jobs fetched successfully",
+      count: jobs.length,
+      jobs,
+    });
+  } catch (error) {
+    console.error("Get My Jobs Error:", error);
 
     res.status(500).json({
       message: "Server error",
@@ -186,13 +263,15 @@ const deleteJob = async (req, res) => {
         message: "Job not found",
       });
     }
+    console.log("JOB POSTED BY:", job.postedBy);
+console.log("LOGGED IN USER:", req.user);
 
     // Only the recruiter who posted the job can delete it
-    if (job.postedBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        message: "You can only delete your own jobs",
-      });
-    }
+   if (job.postedBy.toString() !== req.user.userId.toString()) {
+  return res.status(403).json({
+    message: "You can only edit your own jobs",
+  });
+}
 
     await Job.findByIdAndDelete(req.params.id);
 
@@ -210,7 +289,9 @@ const deleteJob = async (req, res) => {
 
 module.exports = {
   createJob,
+   updateJob,
   getAllJobs,
+  getMyJobs,
   getRecommendedJobs,
   getAIRecommendedJobs,
   deleteJob,

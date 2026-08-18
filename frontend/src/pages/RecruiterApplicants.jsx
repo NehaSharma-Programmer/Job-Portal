@@ -17,6 +17,78 @@ function RecruiterApplicants() {
 const [totalApplicants, setTotalApplicants] = useState(0);
 const [selectedCount, setSelectedCount] = useState(0);
 const [shortlistedCount, setShortlistedCount] = useState(0);
+const [editingJob, setEditingJob] = useState(null);
+const [editForm, setEditForm] = useState({
+  title: "",
+  company: "",
+  description: "",
+  location: "",
+  skills: "",
+  experience: "",
+  salary: "",
+  jobType: "Full-time",
+});
+const handleEditJob = (job) => {
+  setEditingJob(job);
+
+  setEditForm({
+    title: job.title || "",
+    company: job.company || "",
+    description: job.description || "",
+    location: job.location || "",
+    skills: job.skills?.join(", ") || "",
+    experience: job.experience || "",
+    salary: job.salary || "",
+    jobType: job.jobType || "Full-time",
+  });
+};
+const updateJob = async (e) => {
+  e.preventDefault();
+
+  if (!editingJob) return;
+
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.put(
+      `http://localhost:5000/api/jobs/${editingJob._id}`,
+      {
+        title: editForm.title,
+        company: editForm.company,
+        description: editForm.description,
+        location: editForm.location,
+        skills: editForm.skills
+          .split(",")
+          .map((skill) => skill.trim())
+          .filter(Boolean),
+        experience: editForm.experience,
+        salary: Number(editForm.salary),
+        jobType: editForm.jobType,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    setMessage("Job updated successfully!");
+
+    setEditingJob(null);
+
+    fetchMyJobs();
+
+  } catch (error) {
+    console.error("Update Job Error:", error);
+
+    setMessage(
+      error.response?.data?.message ||
+        "Unable to update job"
+    );
+  }
+};
+
+
   // Fetch recruiter's jobs
   const fetchMyJobs = async () => {
     try {
@@ -30,18 +102,19 @@ const [shortlistedCount, setShortlistedCount] = useState(0);
         return;
       }
 
-      const response = await axios.get(
-        "http://localhost:5000/api/jobs",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+     const response = await axios.get(
+  "http://localhost:5000/api/jobs",
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
 
       // Show only jobs posted by logged-in recruiter
-     setJobs(response.data.jobs);
-     const recruiterJobs = response.data.jobs || [];
+   const recruiterJobs = response.data.jobs || [];
+
+setJobs(recruiterJobs);
 
 const allApplications = [];
 
@@ -160,11 +233,13 @@ setShortlistedCount(
     if (selectedJob) {
       fetchApplicants(selectedJob._id);
     }
-  } catch (error) {
-    console.error(
-      "Update Application Status Error:",
-      error
-    );
+} catch (error) {
+  console.error(
+    "Update Application Status Error:",
+    error
+  );
+
+
 
     setMessage(
       error.response?.data?.message ||
@@ -172,6 +247,9 @@ setShortlistedCount(
     );
   }
 };
+
+
+
 
 // Delete job
 const deleteJob = async (jobId) => {
@@ -450,6 +528,15 @@ const deleteJob = async (jobId) => {
                     <span className="arrow">
                       →
                     </span>
+                  <span
+  className="edit-job-btn"
+  onClick={(e) => {
+    e.stopPropagation();
+    handleEditJob(job);
+  }}
+>
+  ✏️ Edit
+</span>  
                     <span
   className="delete-job-btn"
   onClick={(e) => {
@@ -494,6 +581,131 @@ const deleteJob = async (jobId) => {
             </div>
 
           </div>
+{editingJob && (
+  <div className="edit-job-form">
+
+    <h2>✏️ Edit Job</h2>
+
+    <form onSubmit={updateJob}>
+
+      <input
+        type="text"
+        placeholder="Job Title"
+        value={editForm.title}
+        onChange={(e) =>
+          setEditForm({
+            ...editForm,
+            title: e.target.value,
+          })
+        }
+      />
+
+      <input
+        type="text"
+        placeholder="Company"
+        value={editForm.company}
+        onChange={(e) =>
+          setEditForm({
+            ...editForm,
+            company: e.target.value,
+          })
+        }
+      />
+
+      <textarea
+        placeholder="Job Description"
+        value={editForm.description}
+        onChange={(e) =>
+          setEditForm({
+            ...editForm,
+            description: e.target.value,
+          })
+        }
+      />
+
+      <input
+        type="text"
+        placeholder="Location"
+        value={editForm.location}
+        onChange={(e) =>
+          setEditForm({
+            ...editForm,
+            location: e.target.value,
+          })
+        }
+      />
+
+      <input
+        type="text"
+        placeholder="Skills: React, JavaScript, Node.js"
+        value={editForm.skills}
+        onChange={(e) =>
+          setEditForm({
+            ...editForm,
+            skills: e.target.value,
+          })
+        }
+      />
+
+      <input
+        type="text"
+        placeholder="Experience"
+        value={editForm.experience}
+        onChange={(e) =>
+          setEditForm({
+            ...editForm,
+            experience: e.target.value,
+          })
+        }
+      />
+
+      <input
+        type="number"
+        placeholder="Salary"
+        value={editForm.salary}
+        onChange={(e) =>
+          setEditForm({
+            ...editForm,
+            salary: e.target.value,
+          })
+        }
+      />
+
+      <select
+        value={editForm.jobType}
+        onChange={(e) =>
+          setEditForm({
+            ...editForm,
+            jobType: e.target.value,
+          })
+        }
+      >
+        <option value="Full-time">Full-time</option>
+        <option value="Part-time">Part-time</option>
+        <option value="Internship">Internship</option>
+        <option value="Remote">Remote</option>
+      </select>
+
+      <button type="submit">
+        💾 Save Changes
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setEditingJob(null)}
+      >
+        Cancel
+      </button>
+
+    </form>
+  </div>
+)}
+
+{/* Applicants */}
+<div className="applicants-section"></div>
+
+
+
 
           {/* Applicants */}
           <div className="applicants-section">

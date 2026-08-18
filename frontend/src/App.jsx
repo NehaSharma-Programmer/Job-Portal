@@ -7,6 +7,7 @@ import CreateJob from "./pages/CreateJob";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ProtectedRoute from "./ProtectedRoute";
+import CandidateDashboard from "./pages/CandidateDashBoard";
 function App() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -159,10 +160,15 @@ console.log("Token:", token);
   element={<Register />}
 />
 
+  <Route
+    path="/candidate/dashboard"
+    element={<CandidateDashboard />}
+  />
+
       <Route
   path="/recruiter"
   element={
-    <ProtectedRoute>
+    <ProtectedRoute allowedRole="recruiter">
       <RecruiterApplicants />
     </ProtectedRoute>
   }

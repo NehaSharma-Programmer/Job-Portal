@@ -83,7 +83,8 @@ const getJobApplicants = async (req, res) => {
       });
     }
 
-    if (job.postedBy.toString() !== req.user.userId) {
+    // Check job ownership
+    if (job.postedBy.toString() !== req.user.userId.toString()) {
       return res.status(403).json({
         message: "You are not authorized to view these applicants",
       });
@@ -92,7 +93,10 @@ const getJobApplicants = async (req, res) => {
     const applications = await Application.find({
       job: jobId,
     })
-      .populate("candidate", "name email phone skills education experience")
+      .populate(
+        "candidate",
+        "name email phone skills education experience"
+      )
       .sort({ createdAt: -1 });
 
     res.status(200).json({

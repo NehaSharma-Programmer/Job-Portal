@@ -729,3 +729,18 @@
   font-size: 13px;
   line-height: 1.6;
 }
+.edit-job-btn,
+.delete-job-btn {
+  cursor: pointer;
+  margin-left: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.edit-job-btn {
+  color: #2563eb;
+}
+
+.delete-job-btn {
+  color: #dc2626;
+}
