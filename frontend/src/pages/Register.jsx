@@ -1,3 +1,4 @@
+import API_BASE_URL from "../api";
 
 import { useState } from "react";
 import axios from "axios";
@@ -22,7 +23,7 @@ function Register() {
       setMessage("");
 
       await axios.post(
-        "http://localhost:5000/api/auth/register",
+        "${API_BASE_URL}/api/auth/register",
         {
           name,
           email,

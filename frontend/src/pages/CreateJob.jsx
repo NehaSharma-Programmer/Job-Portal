@@ -1,3 +1,4 @@
+import API_BASE_URL from "../api";
 
 import { useState } from "react";
 import axios from "axios";
@@ -41,7 +42,7 @@ function CreateJob() {
       }
 
       const response = await axios.post(
-        "http://localhost:5000/api/jobs",
+        "${API_BASE_URL}/api/jobs",
         {
           title: formData.title,
           company: formData.company,

@@ -1,3 +1,4 @@
+import API_BASE_URL from "../api";
 
 import { useState } from "react";
 import axios from "axios";
@@ -20,7 +21,7 @@ function Login() {
       setMessage("");
 
       const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
+        "${API_BASE_URL}/api/auth/login",
         {
           email,
           password,

@@ -1,3 +1,4 @@
+import API_BASE_URL from "../api";
 
 
 import { useEffect, useState } from "react";
@@ -17,7 +18,7 @@ function CandidateDashboard() {
       const token = localStorage.getItem("token");
 
       const response = await axios.get(
-        "http://localhost:5000/api/jobs",
+        "${API_BASE_URL}/api/jobs",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -40,7 +41,7 @@ function CandidateDashboard() {
       if (!token) return;
 
       const response = await axios.get(
-        "http://localhost:5000/api/applications/my",
+        "${API_BASE_URL}/api/applications/my",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -88,7 +89,7 @@ function CandidateDashboard() {
     }
 
     const response = await axios.post(
-      "http://localhost:5000/api/applications",
+      "${API_BASE_URL}/api/applications",
       {
         jobId: selectedJob._id,
         coverLetter: coverLetter,
@@ -339,3 +340,4 @@ function CandidateDashboard() {
 }
 
 export default CandidateDashboard;
+

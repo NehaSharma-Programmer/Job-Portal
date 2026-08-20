@@ -1,3 +1,4 @@
+import API_BASE_URL from "./api";
 
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -32,7 +33,7 @@ function App() {
       }
 
       const response = await axios.get(
-        "http://localhost:5000/api/jobs/ai-recommended",
+        "${API_BASE_URL}/api/jobs/ai-recommended",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -64,7 +65,7 @@ function App() {
     }
 
     const response = await axios.get(
-      "http://localhost:5000/api/applications/my",
+      "${API_BASE_URL}/api/applications/my",
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -108,7 +109,7 @@ console.log("Token:", token);
 
 
       await axios.post(
-        "http://localhost:5000/api/applications",
+        "${API_BASE_URL}/api/applications",
         {
            jobId: selectedJob._id,
     coverLetter: coverLetter,
@@ -362,4 +363,6 @@ console.log("Token:", token);
 }
 
 export default App;
+
+
 

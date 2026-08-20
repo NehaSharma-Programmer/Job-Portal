@@ -1,3 +1,4 @@
+import API_BASE_URL from "../api";
 
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -51,7 +52,7 @@ const updateJob = async (e) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.put(
-      `http://localhost:5000/api/jobs/${editingJob._id}`,
+      `${API_BASE_URL}/api/jobs/${editingJob._id}`,
       {
         title: editForm.title,
         company: editForm.company,
@@ -98,7 +99,7 @@ const updateJob = async (e) => {
       if (!token) return;
 
       const response = await axios.get(
-        `http://localhost:5000/api/applications/job/${jobId}`,
+        `${API_BASE_URL}/api/applications/job/${jobId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -136,7 +137,7 @@ const updateJob = async (e) => {
       let recruiterJobs = [];
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/jobs/my",
+          "${API_BASE_URL}/api/jobs/my",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -146,7 +147,7 @@ const updateJob = async (e) => {
         recruiterJobs = response.data.jobs || [];
       } catch (err) {
         const response = await axios.get(
-          "http://localhost:5000/api/jobs",
+          "${API_BASE_URL}/api/jobs",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -168,7 +169,7 @@ const updateJob = async (e) => {
         const appsPromises = recruiterJobs.map((job) =>
           axios
             .get(
-              `http://localhost:5000/api/applications/job/${job._id}`,
+              `${API_BASE_URL}/api/applications/job/${job._id}`,
               {
                 headers: { Authorization: `Bearer ${token}` },
               }
@@ -201,7 +202,7 @@ const updateJob = async (e) => {
       const token = localStorage.getItem("token");
 
       await axios.put(
-        `http://localhost:5000/api/applications/${applicationId}/status`,
+        `${API_BASE_URL}/api/applications/${applicationId}/status`,
         {
           status,
         },
@@ -263,7 +264,7 @@ const deleteJob = async (jobId) => {
     const token = localStorage.getItem("token");
 
     await axios.delete(
-      `http://localhost:5000/api/jobs/${jobId}`,
+      `${API_BASE_URL}/api/jobs/${jobId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
