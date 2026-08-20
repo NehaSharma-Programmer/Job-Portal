@@ -1,7 +1,5 @@
-import API_BASE_URL from "../api";
-
 import { useState } from "react";
-import axios from "axios";
+import API from "../api";
 import { useNavigate, Link } from "react-router-dom";
 
 function Register() {
@@ -12,7 +10,6 @@ function Register() {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
@@ -22,29 +19,22 @@ function Register() {
       setLoading(true);
       setMessage("");
 
-      await axios.post(
-        "${API_BASE_URL}/api/auth/register",
-        {
-          name,
-          email,
-          password,
-          role,
-        }
-      );
+      await API.post("/api/auth/register", {
+        name,
+        email,
+        password,
+        role,
+      });
 
-      setMessage(
-        "Registration successful! Please login."
-      );
+      setMessage("Registration successful! Redirecting to login...");
 
       setTimeout(() => {
         navigate("/login");
       }, 1000);
     } catch (error) {
       console.error("Register Error:", error);
-
       setMessage(
-        error.response?.data?.message ||
-          "Unable to register"
+        error.response?.data?.message || "Unable to register account"
       );
     } finally {
       setLoading(false);
@@ -54,148 +44,219 @@ function Register() {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight: "calc(100vh - 70px)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        background: "#f5f7fb",
+        padding: "40px 20px",
       }}
     >
       <div
         style={{
-          width: "400px",
-          padding: "35px",
-          background: "white",
-          borderRadius: "15px",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+          width: "100%",
+          maxWidth: "440px",
+          padding: "40px",
+          background: "var(--bg-card)",
+          borderRadius: "var(--radius-lg)",
+          border: "1px solid var(--border-color)",
+          boxShadow: "var(--shadow-xl)",
         }}
       >
-        <h1>Join JobLane 🚀</h1>
+        <h1
+          style={{
+            fontSize: "28px",
+            fontWeight: "700",
+            color: "var(--text-main)",
+            marginBottom: "8px",
+          }}
+        >
+          Join JobLane 🚀
+        </h1>
 
-        <p style={{ color: "#666" }}>
-          Create your account
+        <p
+          style={{
+            color: "var(--text-muted)",
+            fontSize: "14px",
+            marginBottom: "24px",
+          }}
+        >
+          Create your JobLane account
         </p>
 
         {message && (
-          <p
+          <div
             style={{
-              padding: "10px",
-              background: "#f1f5f9",
-              borderRadius: "8px",
+              padding: "12px",
+              marginBottom: "20px",
+              background: message.includes("successful")
+                ? "var(--success-light)"
+                : "var(--danger-light)",
+              color: message.includes("successful")
+                ? "var(--success)"
+                : "var(--danger)",
+              borderRadius: "var(--radius-md)",
+              fontSize: "14px",
+              fontWeight: "500",
             }}
           >
             {message}
-          </p>
+          </div>
         )}
 
         <form onSubmit={handleRegister}>
-          <label>Name</label>
+          <div style={{ marginBottom: "16px" }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: "13px",
+                fontWeight: "600",
+                color: "var(--text-muted)",
+                marginBottom: "6px",
+              }}
+            >
+              Full Name
+            </label>
+            <input
+              type="text"
+              placeholder="John Doe"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: "var(--bg-input)",
+                color: "var(--text-main)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "var(--radius-md)",
+                outline: "none",
+              }}
+            />
+          </div>
 
-          <input
-            type="text"
-            placeholder="Enter your name"
-            value={name}
-            onChange={(e) =>
-              setName(e.target.value)
-            }
-            required
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "8px",
-              marginBottom: "18px",
-              boxSizing: "border-box",
-            }}
-          />
+          <div style={{ marginBottom: "16px" }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: "13px",
+                fontWeight: "600",
+                color: "var(--text-muted)",
+                marginBottom: "6px",
+              }}
+            >
+              Email Address
+            </label>
+            <input
+              type="email"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: "var(--bg-input)",
+                color: "var(--text-main)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "var(--radius-md)",
+                outline: "none",
+              }}
+            />
+          </div>
 
-          <label>Email</label>
+          <div style={{ marginBottom: "16px" }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: "13px",
+                fontWeight: "600",
+                color: "var(--text-muted)",
+                marginBottom: "6px",
+              }}
+            >
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="At least 6 characters"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: "var(--bg-input)",
+                color: "var(--text-main)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "var(--radius-md)",
+                outline: "none",
+              }}
+            />
+          </div>
 
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) =>
-              setEmail(e.target.value)
-            }
-            required
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "8px",
-              marginBottom: "18px",
-              boxSizing: "border-box",
-            }}
-          />
-
-          <label>Password</label>
-
-          <input
-            type="password"
-            placeholder="Create a password"
-            value={password}
-            onChange={(e) =>
-              setPassword(e.target.value)
-            }
-            required
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "8px",
-              marginBottom: "18px",
-              boxSizing: "border-box",
-            }}
-          />
-
-          <label>Account Type</label>
-
-          <select
-            value={role}
-            onChange={(e) =>
-              setRole(e.target.value)
-            }
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "8px",
-              marginBottom: "20px",
-            }}
-          >
-            <option value="candidate">
-              Candidate
-            </option>
-
-            <option value="recruiter">
-              Recruiter
-            </option>
-          </select>
+          <div style={{ marginBottom: "24px" }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: "13px",
+                fontWeight: "600",
+                color: "var(--text-muted)",
+                marginBottom: "6px",
+              }}
+            >
+              I am a...
+            </label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: "var(--bg-input)",
+                color: "var(--text-main)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "var(--radius-md)",
+                outline: "none",
+              }}
+            >
+              <option value="candidate">Job Candidate</option>
+              <option value="recruiter">Recruiter / Employer</option>
+            </select>
+          </div>
 
           <button
             type="submit"
             disabled={loading}
             style={{
               width: "100%",
-              padding: "13px",
+              padding: "14px",
               border: "none",
-              borderRadius: "8px",
-              background: "#4f46e5",
+              borderRadius: "var(--radius-md)",
+              background: "var(--primary)",
               color: "white",
-              fontSize: "16px",
+              fontSize: "15px",
+              fontWeight: "600",
+              cursor: "pointer",
             }}
           >
-            {loading
-              ? "Creating account..."
-              : "Register"}
+            {loading ? "Creating account..." : "Register"}
           </button>
         </form>
 
         <p
           style={{
             textAlign: "center",
-            marginTop: "20px",
+            marginTop: "24px",
+            fontSize: "14px",
+            color: "var(--text-muted)",
           }}
         >
           Already have an account?{" "}
-          <Link to="/login">
+          <Link
+            to="/login"
+            style={{ color: "var(--primary)", fontWeight: "600" }}
+          >
             Login
           </Link>
         </p>

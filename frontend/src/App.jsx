@@ -1,368 +1,86 @@
-import API_BASE_URL from "./api";
-
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import RecruiterApplicants from "./pages/RecruiterApplicants";
-import CreateJob from "./pages/CreateJob";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import ProtectedRoute from "./ProtectedRoute";
 import CandidateDashboard from "./pages/CandidateDashBoard";
+import RecruiterApplicants from "./pages/RecruiterApplicants";
+import CreateJob from "./pages/CreateJob";
+import Profile from "./pages/Profile";
+import ProtectedRoute from "./ProtectedRoute";
+
+function HomeRedirect() {
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  if (user?.role === "recruiter") {
+    return <Navigate to="/recruiter" replace />;
+  }
+  return <CandidateDashboard />;
+}
+
 function App() {
-  const [recommendations, setRecommendations] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [coverLetter, setCoverLetter] = useState("");
-  const [applying, setApplying] = useState(false);
-  const [applications, setApplications] = useState([]);
-  const [applicationsLoading, setApplicationsLoading] = useState(false);
-  // Fetch AI recommended jobs
-  const fetchRecommendations = async () => {
-    try {
-      setLoading(true);
-      setMessage("");
-
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setMessage("Please login first");
-        return;
-      }
-
-      const response = await axios.get(
-        "${API_BASE_URL}/api/jobs/ai-recommended",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setRecommendations(response.data.recommendations);
-    } catch (error) {
-      console.error("AI Recommendation Error:", error);
-
-      setMessage(
-        error.response?.data?.message ||
-          "Unable to fetch AI recommendations"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-   const fetchMyApplications = async () => {
-  try {
-    setApplicationsLoading(true);
-
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setMessage("Please login first");
-      return;
-    }
-
-    const response = await axios.get(
-      "${API_BASE_URL}/api/applications/my",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    setApplications(response.data.applications);
-  } catch (error) {
-    console.error("My Applications Error:", error);
-
-    setMessage(
-      error.response?.data?.message ||
-        "Unable to fetch applications"
-    );
-  } finally {
-    setApplicationsLoading(false);
-  }
-};
-
-
-
-  // Apply for selected job
-  const applyForJob = async () => {
-    try {
-      if (!selectedJob) {
-        return;
-      }
-
-      if (!coverLetter.trim()) {
-        setMessage("Please enter a cover letter");
-        return;
-      }
-
-      setApplying(true);
-      setMessage("");
-
-      const token = localStorage.getItem("token");
-      console.log("Selected Job:", selectedJob);
-console.log("Token:", token);
-
-
-      await axios.post(
-        "${API_BASE_URL}/api/applications",
-        {
-           jobId: selectedJob._id,
-    coverLetter: coverLetter,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      setMessage("Application submitted successfully!");
-
-      setSelectedJob(null);
-      setCoverLetter("");
-    } catch (error) {
-      console.error("Apply Error:", error);
-
-      setMessage(
-        error.response?.data?.message ||
-          "Unable to submit application"
-      );
-    } finally {
-      setApplying(false);
-    }
-  };
-
-  // Fetch recommendations when page loads
-  useEffect(() => {
-      const path = window.location.pathname;
-
-  if (path === "/") {
-
-    fetchRecommendations();
-    fetchMyApplications();
-  }
-  }, []);
-
   return (
-         <BrowserRouter>
-    <Routes>
-      <Route
-  path="/login"
-  element={<Login />}
-/>
-<Route
-  path="/register"
-  element={<Register />}
-/>
+    <BrowserRouter>
+      <Navbar />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<HomeRedirect />} />
 
-  <Route
-    path="/candidate/dashboard"
-    element={<CandidateDashboard />}
-  />
+        {/* Candidate Routes */}
+        <Route
+          path="/candidate/dashboard"
+          element={
+            <ProtectedRoute allowedRole="candidate">
+              <CandidateDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-  path="/recruiter"
-  element={
-    <ProtectedRoute allowedRole="recruiter">
-      <RecruiterApplicants />
-    </ProtectedRoute>
-  }
-/>
-      <Route
-  path="/recruiter/create-job"
-  element={<CreateJob />}
-/>
+        {/* Profile Route */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
 
+        {/* Recruiter Routes */}
+        <Route
+          path="/recruiter"
+          element={
+            <ProtectedRoute allowedRole="recruiter">
+              <RecruiterApplicants />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/recruiter/dashboard"
+          element={
+            <ProtectedRoute allowedRole="recruiter">
+              <RecruiterApplicants />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/recruiter/create-job"
+          element={
+            <ProtectedRoute allowedRole="recruiter">
+              <CreateJob />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/"
-        element={
-
-
-
-    <div style={{ padding: "40px" }}>
-      <h1>🤖 AI Recommended Jobs</h1>
-
-      {/* Loading */}
-      {loading && <p>Loading recommendations...</p>}
-
-      {/* Success / Error message */}
-      {message && <p>{message}</p>}
-
-      {/* AI Recommended Jobs */}
-      {!loading &&
-        recommendations.map((item) => (
-          <div
-            key={item.job._id}
-            style={{
-              border: "1px solid #ddd",
-              padding: "20px",
-              margin: "20px 0",
-              borderRadius: "10px",
-            }}
-          >
-            <h2>{item.job.title}</h2>
-
-            <p>
-              <strong>Company:</strong>{" "}
-              {item.job.company}
-            </p>
-
-            <p>
-              <strong>Location:</strong>{" "}
-              {item.job.location}
-            </p>
-
-            <p>
-              <strong>Salary:</strong>{" "}
-              ₹{item.job.salary}
-            </p>
-
-            <p>
-              <strong>Match:</strong>{" "}
-              {item.matchPercentage}%
-            </p>
-
-            <p>
-              <strong>AI Reason:</strong>{" "}
-              {item.reason}
-            </p>
-
-            <p>
-              <strong>Skills:</strong>{" "}
-              {item.job.skills.join(", ")}
-            </p>
-
-            {/* Apply Button */}
-            <button
-              onClick={() => setSelectedJob(item.job)}
-            >
-              Apply Now
-            </button>
-          </div>
-        ))}
-
-      {/* Apply Form */}
-      {selectedJob && (
-        <div
-          style={{
-            marginTop: "30px",
-            padding: "20px",
-            border: "1px solid #ddd",
-            borderRadius: "10px",
-          }}
-        >
-          <h2>Apply for {selectedJob.title}</h2>
-
-          <textarea
-            rows="6"
-            placeholder="Write your cover letter..."
-            value={coverLetter}
-            onChange={(e) =>
-              setCoverLetter(e.target.value)
-            }
-            style={{
-              width: "100%",
-              padding: "10px",
-              marginBottom: "10px",
-            }}
-          />
-
-          <br />
-
-          <button
-            onClick={applyForJob}
-            disabled={applying}
-          >
-            {applying
-              ? "Submitting..."
-              : "Submit Application"}
-          </button>
-
-          <button
-            onClick={() => {
-              setSelectedJob(null);
-              setCoverLetter("");
-              setMessage("");
-            }}
-            style={{
-              marginLeft: "10px",
-            }}
-          >
-            Cancel
-          </button>
-        </div>
-      )}
-       <hr style={{ margin: "40px 0" }} />
-
-<h1>📋 My Applications</h1>
-
-{applicationsLoading && (
-  <p>Loading applications...</p>
-)}
-
-{!applicationsLoading && applications.length === 0 && (
-  <p>You have not applied for any jobs yet.</p>
-)}
-
-{!applicationsLoading &&
-  applications.map((application) => (
-    <div
-      key={application._id}
-      style={{
-        border: "1px solid #ddd",
-        padding: "20px",
-        margin: "20px 0",
-        borderRadius: "10px",
-      }}
-    >
-      <h2>
-        {application.job?.title}
-      </h2>
-
-      <p>
-        <strong>Company:</strong>{" "}
-        {application.job?.company}
-      </p>
-
-      <p>
-        <strong>Location:</strong>{" "}
-        {application.job?.location}
-      </p>
-
-      <p>
-        <strong>Status:</strong>{" "}
-        {application.status}
-      </p>
-
-      <p>
-        <strong>Cover Letter:</strong>{" "}
-        {application.coverLetter}
-      </p>
-    </div>
-  ))}
-
-
-
-    </div>
-            }
-      />
-
-    </Routes>
-  </BrowserRouter>
-
-
-
+        {/* Fallback Catch-all Route */}
+        <Route path="*" element={<HomeRedirect />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
 export default App;
-
-
-

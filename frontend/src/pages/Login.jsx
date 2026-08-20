@@ -1,16 +1,12 @@
-import API_BASE_URL from "../api";
-
 import { useState } from "react";
-import axios from "axios";
+import API from "../api";
 import { useNavigate, Link } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -20,22 +16,14 @@ function Login() {
       setLoading(true);
       setMessage("");
 
-      const response = await axios.post(
-        "${API_BASE_URL}/api/auth/login",
-        {
-          email,
-          password,
-        }
-      );
+      const response = await API.post("/api/auth/login", {
+        email,
+        password,
+      });
 
-      // Save JWT token
+      // Save JWT token & user info
       localStorage.setItem("token", response.data.token);
-
-      // Save user information
-      localStorage.setItem(
-        "user",
-        JSON.stringify(response.data.user)
-      );
+      localStorage.setItem("user", JSON.stringify(response.data.user));
 
       setMessage("Login successful!");
 
@@ -43,14 +31,12 @@ function Login() {
       if (response.data.user.role === "recruiter") {
         navigate("/recruiter");
       } else {
-        navigate("/");
+        navigate("/candidate/dashboard");
       }
     } catch (error) {
       console.error("Login Error:", error);
-
       setMessage(
-        error.response?.data?.message ||
-          "Invalid email or password"
+        error.response?.data?.message || "Invalid email or password"
       );
     } finally {
       setLoading(false);
@@ -60,92 +46,138 @@ function Login() {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight: "calc(100vh - 70px)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        background: "#f5f7fb",
+        padding: "40px 20px",
       }}
     >
       <div
         style={{
-          width: "400px",
-          padding: "35px",
-          background: "white",
-          borderRadius: "15px",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+          width: "100%",
+          maxWidth: "420px",
+          padding: "40px",
+          background: "var(--bg-card)",
+          borderRadius: "var(--radius-lg)",
+          border: "1px solid var(--border-color)",
+          boxShadow: "var(--shadow-xl)",
         }}
       >
-        <h1 style={{ marginBottom: "10px" }}>
+        <h1
+          style={{
+            fontSize: "28px",
+            fontWeight: "700",
+            color: "var(--text-main)",
+            marginBottom: "8px",
+          }}
+        >
           Welcome Back 👋
         </h1>
 
-        <p style={{ color: "#666", marginBottom: "25px" }}>
+        <p
+          style={{
+            color: "var(--text-muted)",
+            fontSize: "14px",
+            marginBottom: "24px",
+          }}
+        >
           Login to your JobLane account
         </p>
 
         {message && (
-          <p
+          <div
             style={{
-              padding: "10px",
-              background: "#f1f5f9",
-              borderRadius: "8px",
+              padding: "12px",
+              marginBottom: "20px",
+              background: message.includes("successful")
+                ? "var(--success-light)"
+                : "var(--danger-light)",
+              color: message.includes("successful")
+                ? "var(--success)"
+                : "var(--danger)",
+              borderRadius: "var(--radius-md)",
+              fontSize: "14px",
+              fontWeight: "500",
             }}
           >
             {message}
-          </p>
+          </div>
         )}
 
         <form onSubmit={handleLogin}>
-          <label>Email</label>
+          <div style={{ marginBottom: "18px" }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: "13px",
+                fontWeight: "600",
+                color: "var(--text-muted)",
+                marginBottom: "6px",
+              }}
+            >
+              Email Address
+            </label>
+            <input
+              type="email"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: "var(--bg-input)",
+                color: "var(--text-main)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "var(--radius-md)",
+                outline: "none",
+              }}
+            />
+          </div>
 
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) =>
-              setEmail(e.target.value)
-            }
-            required
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "8px",
-              marginBottom: "18px",
-              boxSizing: "border-box",
-            }}
-          />
-
-          <label>Password</label>
-
-          <input
-            type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) =>
-              setPassword(e.target.value)
-            }
-            required
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "8px",
-              marginBottom: "20px",
-              boxSizing: "border-box",
-            }}
-          />
+          <div style={{ marginBottom: "24px" }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: "13px",
+                fontWeight: "600",
+                color: "var(--text-muted)",
+                marginBottom: "6px",
+              }}
+            >
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: "var(--bg-input)",
+                color: "var(--text-main)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "var(--radius-md)",
+                outline: "none",
+              }}
+            />
+          </div>
 
           <button
             type="submit"
             disabled={loading}
             style={{
               width: "100%",
-              padding: "13px",
+              padding: "14px",
               border: "none",
-              borderRadius: "8px",
-              background: "#4f46e5",
+              borderRadius: "var(--radius-md)",
+              background: "var(--primary)",
               color: "white",
-              fontSize: "16px",
+              fontSize: "15px",
+              fontWeight: "600",
               cursor: "pointer",
             }}
           >
@@ -156,11 +188,16 @@ function Login() {
         <p
           style={{
             textAlign: "center",
-            marginTop: "20px",
+            marginTop: "24px",
+            fontSize: "14px",
+            color: "var(--text-muted)",
           }}
         >
           Don't have an account?{" "}
-          <Link to="/register">
+          <Link
+            to="/register"
+            style={{ color: "var(--primary)", fontWeight: "600" }}
+          >
             Register
           </Link>
         </p>

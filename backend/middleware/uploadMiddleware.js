@@ -19,14 +19,14 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = [".pdf", ".doc", ".docx"];
+  const allowedTypes = [".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png", ".webp"];
 
   const extension = path.extname(file.originalname).toLowerCase();
 
   if (allowedTypes.includes(extension)) {
     cb(null, true);
   } else {
-    cb(new Error("Only PDF, DOC and DOCX files are allowed"));
+    cb(new Error("Only PDF, DOC, DOCX, JPG, PNG and WebP files are allowed"));
   }
 };
 

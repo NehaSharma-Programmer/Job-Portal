@@ -64,12 +64,22 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
+    preferredLocation: {
+      type: String,
+      default: "",
+    },
+
     expectedSalary: {
       type: Number,
       default: 0,
     },
 
     resume: {
+      type: String,
+      default: "",
+    },
+
+    profilePhoto: {
       type: String,
       default: "",
     },

@@ -57,10 +57,16 @@ const updateProfile = async (req, res) => {
     if (preferredRole !== undefined) {
       user.preferredRole = preferredRole;
     }
+    if (req.body.preferredLocation !== undefined) {
+      user.preferredLocation = req.body.preferredLocation;
+    }
     if (expectedSalary !== undefined) {
       user.expectedSalary = expectedSalary;
     }
     if (resume !== undefined) user.resume = resume;
+    if (req.body.profilePhoto !== undefined) {
+      user.profilePhoto = req.body.profilePhoto;
+    }
 
     const updatedUser = await user.save();
 
@@ -68,6 +74,7 @@ const updateProfile = async (req, res) => {
       message: "Profile updated successfully",
       user: {
         id: updatedUser._id,
+        _id: updatedUser._id,
         name: updatedUser.name,
         email: updatedUser.email,
         role: updatedUser.role,
@@ -78,8 +85,10 @@ const updateProfile = async (req, res) => {
         education: updatedUser.education,
         experience: updatedUser.experience,
         preferredRole: updatedUser.preferredRole,
+        preferredLocation: updatedUser.preferredLocation,
         expectedSalary: updatedUser.expectedSalary,
         resume: updatedUser.resume,
+        profilePhoto: updatedUser.profilePhoto,
       },
     });
   } catch (error) {
@@ -90,6 +99,41 @@ const updateProfile = async (req, res) => {
     });
   }
 };
+
+const uploadPhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Please upload an image file",
+      });
+    }
+
+    const user = await User.findById(req.user.userId);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    user.profilePhoto = req.file.path;
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Profile photo uploaded successfully",
+      profilePhoto: user.profilePhoto,
+      user,
+    });
+  } catch (error) {
+    console.error("Photo Upload Error:", error);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
 const uploadResume = async (req, res) => {
   try {
     if (!req.file) {
@@ -113,6 +157,7 @@ const uploadResume = async (req, res) => {
     res.status(200).json({
       message: "Resume uploaded successfully",
       resume: user.resume,
+      user,
     });
   } catch (error) {
     console.error("Resume Upload Error:", error);
@@ -123,9 +168,9 @@ const uploadResume = async (req, res) => {
   }
 };
 
-
 module.exports = {
   getProfile,
   updateProfile,
+  uploadPhoto,
   uploadResume,
 };
