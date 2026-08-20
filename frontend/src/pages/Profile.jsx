@@ -104,9 +104,7 @@ function Profile() {
       const formData = new FormData();
       formData.append("photo", file);
 
-      const res = await API.post("/api/profile/photo", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await API.post("/api/profile/photo", formData);
 
       setProfile((prev) => ({ ...prev, profilePhoto: res.data.profilePhoto }));
       setMessage({ type: "success", text: "Profile photo uploaded successfully!" });
@@ -136,9 +134,7 @@ function Profile() {
       const formData = new FormData();
       formData.append("resume", file);
 
-      const res = await API.post("/api/profile/resume", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await API.post("/api/profile/resume", formData);
 
       setProfile((prev) => ({ ...prev, resume: res.data.resume }));
       setMessage({ type: "success", text: "Resume uploaded successfully!" });

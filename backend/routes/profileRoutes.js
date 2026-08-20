@@ -13,6 +13,15 @@ const {
 const protect = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
+const handleUpload = (multerMiddleware) => (req, res, next) => {
+  multerMiddleware(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message || "File upload error" });
+    }
+    next();
+  });
+};
+
 router.get("/", protect, getProfile);
 
 router.put("/", protect, updateProfile);
@@ -20,14 +29,14 @@ router.put("/", protect, updateProfile);
 router.post(
   "/photo",
   protect,
-  upload.single("photo"),
+  handleUpload(upload.single("photo")),
   uploadPhoto
 );
 
 router.post(
   "/resume",
   protect,
-  upload.single("resume"),
+  handleUpload(upload.single("resume")),
   uploadResume
 );
 

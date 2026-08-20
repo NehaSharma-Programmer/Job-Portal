@@ -1,4 +1,5 @@
 
+const path = require("path");
 const User = require("../models/User");
 const { v2: cloudinary } = require("cloudinary");
 cloudinary.config({
@@ -113,6 +114,12 @@ const uploadPhoto = async (req, res) => {
       });
     }
 
+    if (req.file.size > 5 * 1024 * 1024) {
+      return res.status(400).json({
+        message: "Image file size should be less than 5MB",
+      });
+    }
+
     const user = await User.findById(req.user.userId);
 
     if (!user) {
@@ -153,11 +160,18 @@ const uploadPhoto = async (req, res) => {
     });
   }
 };
+
 const uploadResume = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
         message: "Please upload a resume",
+      });
+    }
+
+    if (req.file.size > 10 * 1024 * 1024) {
+      return res.status(400).json({
+        message: "Resume file size should be less than 10MB",
       });
     }
 
@@ -169,11 +183,18 @@ const uploadResume = async (req, res) => {
       });
     }
 
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    const baseName = path
+      .basename(req.file.originalname, ext)
+      .replace(/[^a-zA-Z0-9]/g, "_");
+    const publicId = `${baseName}_${Date.now()}${ext}`;
+
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
           folder: "job-portal/resumes",
           resource_type: "raw",
+          public_id: publicId,
         },
         (error, result) => {
           if (error) reject(error);
