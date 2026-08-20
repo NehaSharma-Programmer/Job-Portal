@@ -1,6 +1,11 @@
 
 const User = require("../models/User");
-
+const { v2: cloudinary } = require("cloudinary");
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select("-password");
@@ -116,7 +121,22 @@ const uploadPhoto = async (req, res) => {
       });
     }
 
-    user.profilePhoto = req.file.path;
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: "job-portal/profile-photos",
+          resource_type: "image",
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+
+      stream.end(req.file.buffer);
+    });
+
+    user.profilePhoto = result.secure_url;
 
     await user.save();
 
@@ -133,7 +153,6 @@ const uploadPhoto = async (req, res) => {
     });
   }
 };
-
 const uploadResume = async (req, res) => {
   try {
     if (!req.file) {
@@ -150,7 +169,22 @@ const uploadResume = async (req, res) => {
       });
     }
 
-    user.resume = req.file.path;
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: "job-portal/resumes",
+          resource_type: "raw",
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+
+      stream.end(req.file.buffer);
+    });
+
+    user.resume = result.secure_url;
 
     await user.save();
 
