@@ -72,7 +72,7 @@ const updateJob = async (req, res) => {
 console.log("LOGGED IN USER:", req.user);
 
     // Only the recruiter who created the job can edit it
-    if (job.postedBy.toString() !== req.user._id.toString()) {
+    if (job.postedBy.toString() !== req.user.userId.toString()) {
       return res.status(403).json({
         message: "You can only edit your own jobs",
       });

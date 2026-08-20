@@ -89,6 +89,34 @@ const updateJob = async (e) => {
 };
 
 
+  // Fetch applicants for selected job
+  const fetchApplicants = async (jobId) => {
+    try {
+      setApplicantsLoading(true);
+      const token = localStorage.getItem("token");
+
+      if (!token) return;
+
+      const response = await axios.get(
+        `http://localhost:5000/api/applications/job/${jobId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setApplicants(response.data.applications || []);
+    } catch (error) {
+      console.error("Fetch Applicants Error:", error);
+      setMessage(
+        error.response?.data?.message || "Unable to fetch applicants"
+      );
+    } finally {
+      setApplicantsLoading(false);
+    }
+  };
+
   // Fetch recruiter's jobs
   const fetchMyJobs = async () => {
     try {
@@ -102,47 +130,57 @@ const updateJob = async (e) => {
         return;
       }
 
-     const response = await axios.get(
-  "http://localhost:5000/api/jobs",
-  {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-);
+      const user = JSON.parse(localStorage.getItem("user"));
+      const recruiterId = user?.id || user?._id;
 
-      // Show only jobs posted by logged-in recruiter
-   const recruiterJobs = response.data.jobs || [];
+      let recruiterJobs = [];
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/jobs/my",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        recruiterJobs = response.data.jobs || [];
+      } catch (err) {
+        const response = await axios.get(
+          "http://localhost:5000/api/jobs",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-setJobs(recruiterJobs);
-
-const allApplications = [];
-
-for (const job of recruiterJobs) {
-  try {
-    const applicantsResponse = await axios.get(
-      `http://localhost:5000/api/applications/job/${job._id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        recruiterJobs = (response.data.jobs || []).filter(
+          (job) =>
+            (job.postedBy?._id || job.postedBy)?.toString() ===
+            recruiterId?.toString()
+        );
       }
-    );
 
-    const jobApplications =
-      applicantsResponse.data.applications || [];
+      setJobs(recruiterJobs);
+      setTotalJobs(recruiterJobs.length);
 
-    allApplications.push(...jobApplications);
-  } catch (error) {
-    console.error(
-      `Applicants fetch error for job ${job._id}:`,
-      error
-    );
-  }
-}
-
-setAllApplicants(allApplications);
-     setTotalJobs(response.data.jobs.length);
+      if (recruiterJobs.length > 0) {
+        const appsPromises = recruiterJobs.map((job) =>
+          axios
+            .get(
+              `http://localhost:5000/api/applications/job/${job._id}`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            )
+            .then((res) => res.data.applications || [])
+            .catch(() => [])
+        );
+        const appsResults = await Promise.all(appsPromises);
+        setAllApplicants(appsResults.flat());
+      } else {
+        setAllApplicants([]);
+      }
     } catch (error) {
       console.error("Fetch Jobs Error:", error);
 
@@ -155,16 +193,18 @@ setAllApplicants(allApplications);
     }
   };
 
-  // Fetch applicants for selected job
-  const fetchApplicants = async (jobId) => {
+  const updateApplicationStatus = async (
+    applicationId,
+    status
+  ) => {
     try {
-      setApplicantsLoading(true);
-      setMessage("");
-
       const token = localStorage.getItem("token");
 
-      const response = await axios.get(
-        `http://localhost:5000/api/applications/job/${jobId}`,
+      await axios.put(
+        `http://localhost:5000/api/applications/${applicationId}/status`,
+        {
+          status,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -172,81 +212,41 @@ setAllApplicants(allApplications);
         }
       );
 
-      setApplicants(response.data.applications);
-      const applications = response.data.applications || [];
+      setMessage(
+        `Application ${status.toLowerCase()} successfully`
+      );
 
-setTotalApplicants(applications.length);
+      setApplicants((prevApplicants) =>
+        prevApplicants.map((application) =>
+          application._id === applicationId
+            ? { ...application, status }
+            : application
+        )
+      );
 
-setSelectedCount(
-  applications.filter(
-    (application) => application.status === "Selected"
-  ).length
-);
+      setAllApplicants((prevAll) =>
+        prevAll.map((application) =>
+          application._id === applicationId
+            ? { ...application, status }
+            : application
+        )
+      );
 
-setShortlistedCount(
-  applications.filter(
-    (application) => application.status === "Shortlisted"
-  ).length
-);
+      if (selectedJob) {
+        fetchApplicants(selectedJob._id);
+      }
     } catch (error) {
-      console.error("Fetch Applicants Error:", error);
+      console.error(
+        "Update Application Status Error:",
+        error
+      );
 
       setMessage(
         error.response?.data?.message ||
-          "Unable to fetch applicants"
+          "Unable to update application status"
       );
-    } finally {
-      setApplicantsLoading(false);
     }
   };
-
-    const updateApplicationStatus = async (
-  applicationId,
-  status
-) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    await axios.patch(
-      `http://localhost:5000/api/applications/${applicationId}/status`,
-      {
-        status,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    setMessage(
-      `Application ${status.toLowerCase()} successfully`
-    );
-    setApplicants((prevApplicants) =>
-  prevApplicants.map((application) =>
-    application._id === applicationId
-      ? { ...application, status }
-      : application
-  )
-);
-
-    if (selectedJob) {
-      fetchApplicants(selectedJob._id);
-    }
-} catch (error) {
-  console.error(
-    "Update Application Status Error:",
-    error
-  );
-
-
-
-    setMessage(
-      error.response?.data?.message ||
-        "Unable to update application status"
-    );
-  }
-};
 
 
 
@@ -702,12 +702,6 @@ const deleteJob = async (jobId) => {
 )}
 
 {/* Applicants */}
-<div className="applicants-section"></div>
-
-
-
-
-          {/* Applicants */}
           <div className="applicants-section">
 
             {!selectedJob ? (
@@ -746,7 +740,7 @@ const deleteJob = async (jobId) => {
                   </div>
 
                   <span className="applicant-count">
-                    {allApplicants.length}
+                    {applicants.length}
                   </span>
 
                 </div>
@@ -762,7 +756,7 @@ const deleteJob = async (jobId) => {
 
                 {!applicantsLoading &&
                   
-                  allApplicants.length === 0 && (
+                  applicants.length === 0 && (
                     <div className="empty-state">
                       <div className="empty-icon">
                         👤
@@ -782,7 +776,7 @@ const deleteJob = async (jobId) => {
                 <div className="applicant-list">
 
                   {!applicantsLoading &&
-                    allApplicants.map(
+                    applicants.map(
                       (application) => (
                         <div
                           className="applicant-card"

@@ -5,6 +5,12 @@ const applyJob = async (req, res) => {
   try {
     const { jobId, coverLetter } = req.body;
 
+    if (req.user.role !== "candidate") {
+      return res.status(403).json({
+        message: "Only candidates can apply for jobs",
+      });
+    }
+
     if (!jobId) {
       return res.status(400).json({
         message: "Job ID is required",
@@ -141,7 +147,7 @@ const updateApplicationStatus = async (req, res) => {
     }
 
     // Only the recruiter who posted the job can update the application
-    if (application.job.postedBy.toString() !== req.user.userId) {
+    if (application.job.postedBy.toString() !== req.user.userId.toString()) {
       return res.status(403).json({
         message: "You are not authorized to update this application",
       });

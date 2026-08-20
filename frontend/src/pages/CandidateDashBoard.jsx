@@ -9,6 +9,9 @@ function CandidateDashboard() {
   const [selectedJob, setSelectedJob] = useState(null);
   const [coverLetter, setCoverLetter] = useState("");
 
+  const [applications, setApplications] = useState([]);
+  const [applicationsLoading, setApplicationsLoading] = useState(false);
+
   const fetchJobs = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -30,8 +33,32 @@ function CandidateDashboard() {
     }
   };
 
+  const fetchMyApplications = async () => {
+    try {
+      setApplicationsLoading(true);
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const response = await axios.get(
+        "http://localhost:5000/api/applications/my",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setApplications(response.data.applications || []);
+    } catch (error) {
+      console.error("Fetch My Applications Error:", error);
+    } finally {
+      setApplicationsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchJobs();
+    fetchMyApplications();
   }, []);
 
   const handleViewApply = (job) => {
@@ -46,6 +73,14 @@ function CandidateDashboard() {
   const handleApply = async () => {
   try {
     const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    console.log("===== APPLY DEBUG =====");
+    console.log("User:", user);
+    console.log("Candidate ID:", user?.id);
+    console.log("Selected Job:", selectedJob);
+    console.log("Job ID:", selectedJob?._id);
+    console.log("Cover Letter:", coverLetter);
 
     if (!token) {
       alert("Please login first");
@@ -65,6 +100,8 @@ function CandidateDashboard() {
       }
     );
 
+    console.log("APPLICATION RESPONSE:", response.data);
+
     alert(
       response.data.message ||
         "Job application submitted successfully"
@@ -72,8 +109,14 @@ function CandidateDashboard() {
 
     setSelectedJob(null);
     setCoverLetter("");
+    fetchMyApplications();
   } catch (error) {
     console.error("Apply Job Error:", error);
+
+    console.error(
+      "Backend Response:",
+      error.response?.data
+    );
 
     alert(
       error.response?.data?.message ||
@@ -249,6 +292,48 @@ function CandidateDashboard() {
 
         </div>
       )}
+
+      <hr style={{ margin: "40px 0" }} />
+
+      <h2>📋 My Applications</h2>
+
+      {applicationsLoading && <p>Loading applications...</p>}
+
+      {!applicationsLoading && applications.length === 0 && (
+        <p>You have not applied for any jobs yet.</p>
+      )}
+
+      {!applicationsLoading &&
+        applications.map((application) => (
+          <div
+            key={application._id}
+            style={{
+              border: "1px solid #ddd",
+              padding: "20px",
+              margin: "20px 0",
+              borderRadius: "10px",
+              background: "#fff",
+            }}
+          >
+            <h2>{application.job?.title}</h2>
+
+            <p>
+              <strong>Company:</strong> {application.job?.company}
+            </p>
+
+            <p>
+              <strong>Location:</strong> {application.job?.location}
+            </p>
+
+            <p>
+              <strong>Status:</strong> {application.status}
+            </p>
+
+            <p>
+              <strong>Cover Letter:</strong> {application.coverLetter}
+            </p>
+          </div>
+        ))}
     </div>
   );
 }
